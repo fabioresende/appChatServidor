@@ -30,7 +30,7 @@ public class ServidorService {
 
     public ServidorService() {
         try {
-            this.serverSocket = new ServerSocket(2000);
+            this.serverSocket = new ServerSocket(5555);
 
             while (true) {
                 socket = serverSocket.accept();
@@ -66,7 +66,10 @@ public class ServidorService {
 
                     switch (action) {
                         case CONNECT:
-                            connect(message, output);
+                            boolean isConnect = connect(message, output);
+                            if (isConnect) {
+                                mapOnlines.put(message.getName(), output);
+                            }
                             break;
                         case DISCONNECT:
                             break;
@@ -89,8 +92,26 @@ public class ServidorService {
 
     }
 
-    private void connect(ChatMessage message, ObjectOutputStream output) {
-        sendOne(message,output);
+    private boolean connect(ChatMessage message, ObjectOutputStream output) {
+        if (this.mapOnlines.size() != 0) {
+            message.setText("Yes");
+            sendOne(message, output);
+            return true;
+        }
+        
+        for (Map.Entry<String,ObjectOutputStream> kv : mapOnlines.entrySet()) {
+            if (kv.getKey().equals(message.getName())) {
+                message.setText("NO");
+                sendOne(message, output);
+                return true;
+            }
+            else {
+                message.setText("Yes");
+                sendOne(message, output);
+                return false;
+            }
+        }
+        return false;
     }
 
     private void sendOne(ChatMessage message, ObjectOutputStream output) {
